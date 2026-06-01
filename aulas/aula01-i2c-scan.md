@@ -75,6 +75,34 @@ e enxergá-lo no scan. Pinos no ESP32:
 }
 ```
 
+### Como adicionar uma biblioteca (módulo) no Wokwi
+
+Algumas aulas usam arquivos `.py` extras — as **bibliotecas** (também
+chamadas de **módulos**). Para adicioná-las ao seu projeto Wokwi:
+
+1. No editor do Wokwi, clique no botão **+** (fica ao lado das abas de
+   arquivo, perto de `main.py` e `diagram.json`).
+2. Escolha **New File** e digite o **nome exato** do arquivo
+   (ex.: `i2c_lcd.py`). O nome precisa bater com o que aparece no
+   `import` do código.
+3. **Cole o conteúdo** da biblioteca e salve.
+4. Repita para cada biblioteca que a aula pedir.
+
+📁 **Onde encontrar as bibliotecas:** estão na pasta
+[`assets/libs/`](../assets/libs/) deste repositório:
+
+| Arquivo | Usado a partir da | Para qual display |
+|---------|-------------------|-------------------|
+| `lcd_api.py` | Aula 2 | LCD 16x2 |
+| `i2c_lcd.py` | Aula 2 | LCD 16x2 |
+| `ssd1306.py` | Aula 5 | OLED SSD1306 |
+
+> 💡 **Nesta Aula 1 você ainda NÃO precisa de nenhuma biblioteca.** O
+> código usa apenas `machine` e `time`, que já vêm embutidos no firmware
+> MicroPython. As bibliotecas entram a partir da Aula 2, quando vamos de
+> fato escrever no LCD — mas já deixamos o procedimento aqui para você
+> consultar quando chegar a hora.
+
 ## Código
 
 `main.py`:

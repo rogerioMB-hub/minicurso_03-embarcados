@@ -60,7 +60,10 @@ O mesmo da Aula 1 (SDA=21, SCL=22, VCC=5V, GND=GND).
 ## Código
 
 > 📁 **Antes de rodar:** adicione no projeto os arquivos `lcd_api.py` e
-> `i2c_lcd.py` (conteúdo em `assets/libs/` deste repositório).
+> `i2c_lcd.py` (conteúdo em [`assets/libs/`](../assets/libs/) deste
+> repositório). Mesmo que o código importe **só** `i2c_lcd`, ele depende
+> internamente de `lcd_api` — por isso os **dois** arquivos precisam estar
+> presentes, senão você verá um erro `ImportError`.
 
 `main.py`:
 

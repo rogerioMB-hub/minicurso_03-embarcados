@@ -16,6 +16,9 @@ Ao final desta aula você será capaz de:
 - Entender o conceito de **endereço** de um dispositivo I2C.
 - Usar `i2c.scan()` para descobrir quem está conectado ao barramento.
 
+> ℹ️ Nesta aula vamos apenas **detectar** o display no barramento — ainda
+> não escrevemos nada nele. Mostrar texto no LCD começa na Aula 2.
+
 ## Conceito
 
 Até agora, cada dispositivo que ligamos ao ESP32 usava um ou mais pinos
@@ -146,6 +149,13 @@ Encontrei 1 dispositivo(s):
 Esse `0x27` é o endereço do **PCF8574**, o chip que fica nas costas do
 LCD (o tal "backpack") e converte I2C nos sinais do display. Guarde esse
 número — vamos usá-lo na próxima aula.
+
+> 👀 **E o display, fica em branco?** Sim, e isso é o esperado! Nesta aula
+> o programa apenas **pergunta ao barramento "quem está aí?"** com
+> `i2c.scan()` — ele detecta o LCD, mas ainda **não escreve nada nele**.
+> Por isso o código importa só `machine` e `time`, sem nenhuma biblioteca
+> de LCD. **Escrever no display é o assunto da Aula 2**, onde finalmente
+> veremos texto aparecer na tela.
 
 ## Experimento
 

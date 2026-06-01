@@ -59,6 +59,12 @@ O mesmo das aulas anteriores (SDA=21, SCL=22).
 
 ## Código
 
+> 📁 **Antes de rodar:** este código importa `i2c_lcd`, que por sua vez
+> usa `lcd_api`. Garanta que os **dois** arquivos — `lcd_api.py` e
+> `i2c_lcd.py` — estejam no projeto Wokwi (botão **+** → *New File*).
+> Conteúdo em [`assets/libs/`](../assets/libs/). Veja o passo a passo na
+> [Aula 1](aula01-i2c-scan.md#como-adicionar-uma-biblioteca-módulo-no-wokwi).
+
 `main.py`:
 
 ```python

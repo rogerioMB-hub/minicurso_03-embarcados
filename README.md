@@ -36,6 +36,3 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 - **LCD 16x2:** `lcd_api.py` + `i2c_lcd.py` (incluídas em `assets/libs/`)
 - **OLED SSD1306:** `ssd1306.py` (incluída em `assets/libs/`) — adicione ao projeto Wokwi.
 
-## 🚀 Publicação
-
-Veja [`COMO-PUBLICAR.md`](COMO-PUBLICAR.md) para hospedar no GitHub Pages.

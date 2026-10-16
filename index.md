@@ -32,7 +32,7 @@ comunicação UART entre dois ESP32.
 | # | Aula | Conteúdo |
 |---|------|----------|
 | 7 | [Anatomia de um periférico I2C](https://rogeriomb-hub.github.io/minicurso_03-embarcados/aulas/aula07-anatomia-periferico-i2c) | Controller × target, registradores, datasheet |
-| 8 | ESP32 como target I2C *(em breve)* | `I2CTarget`, LED RGB · bancada |
+| 8 | [ESP32 como target I2C](https://rogeriomb-hub.github.io/minicurso_03-embarcados/aulas/aula08-esp32-target) | `I2CTarget`, LED RGB · bancada |
 | 9 | Projeto integrador *(em breve)* | Controller + OLED + target · bancada |
 
 ---

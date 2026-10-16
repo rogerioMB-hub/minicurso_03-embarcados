@@ -69,6 +69,50 @@ Pinos: DATA(SDA)=21, CLK(SCL)=22, VCC=3V3, GND=GND. Endereço I2C: `0x3C`.
 
 ---
 
+## Template C — LCD + OLED no mesmo barramento (Aula 7)
+
+▶️ [https://wokwi.com/projects/478080662685115393](https://wokwi.com/projects/478080662685115393)
+
+```json
+{
+  "version": 1,
+  "author": "Rogério Malta Branco",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -166.4,
+      "left": 188,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled",
+      "top": 60.74,
+      "left": 221.03,
+      "attrs": { "i2cAddress": "0x3c" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:21", "lcd:SDA", "green", [ "h43.24", "v-175.8" ] ],
+    [ "esp:22", "lcd:SCL", "blue", [ "h33.64", "v-48", "v-89.5" ] ],
+    [ "esp:3V3", "lcd:VCC", "red", [ "v-38.4", "h148.99", "v-98.9" ] ],
+    [ "esp:21", "oled:SDA", "green", [ "h43.24", "v-57.6", "h142.9" ] ],
+    [ "esp:22", "oled:SCL", "blue", [ "h33.64", "v-48", "h142.67" ] ],
+    [ "esp:3V3", "oled:VCC", "red", [ "v-38.4", "h263.01" ] ],
+    [ "esp:GND.3", "oled:GND", "black", [ "h24.04", "v-76.8", "h133.37" ] ],
+    [ "esp:GND.3", "lcd:GND", "black", [ "h24.04", "v-204.4" ] ]
+  ],
+  "dependencies": {}
+}
+```
+
+---
+
 ## Bibliotecas necessárias
 
 | Display | Arquivos a adicionar no Wokwi |

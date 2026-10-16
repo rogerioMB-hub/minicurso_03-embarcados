@@ -97,7 +97,9 @@ Mesmo barramento, dois periféricos:
 
 ## 🧩 diagram.json (Wokwi)
 
-> ⚠️ **Validar antes de publicar:** confira todas as conexões no Wokwi.
+▶️ **Projeto pronto no Wokwi:** [https://wokwi.com/projects/478080662685115393](https://wokwi.com/projects/478080662685115393)
+
+Ou monte do zero colando este `diagram.json`:
 
 ```json
 {
@@ -106,24 +108,38 @@ Mesmo barramento, dois periféricos:
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-lcd1602", "id": "lcd", "top": -150, "left": 180, "attrs": { "pins": "i2c" } },
-    { "type": "board-ssd1306", "id": "oled", "top": 60, "left": 220, "attrs": { "i2cAddress": "0x3c" } }
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -166.4,
+      "left": 188,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled",
+      "top": 60.74,
+      "left": 221.03,
+      "attrs": { "i2cAddress": "0x3c" }
+    }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "esp:21", "lcd:SDA", "green", [] ],
-    [ "esp:22", "lcd:SCL", "blue", [] ],
-    [ "esp:3V3", "lcd:VCC", "red", [] ],
-    [ "esp:GND.1", "lcd:GND", "black", [] ],
-    [ "esp:21", "oled:SDA", "green", [] ],
-    [ "esp:22", "oled:SCL", "blue", [] ],
-    [ "esp:3V3", "oled:VCC", "red", [] ],
-    [ "esp:GND.1", "oled:GND", "black", [] ]
+    [ "esp:21", "lcd:SDA", "green", [ "h43.24", "v-175.8" ] ],
+    [ "esp:22", "lcd:SCL", "blue", [ "h33.64", "v-48", "v-89.5" ] ],
+    [ "esp:3V3", "lcd:VCC", "red", [ "v-38.4", "h148.99", "v-98.9" ] ],
+    [ "esp:21", "oled:SDA", "green", [ "h43.24", "v-57.6", "h142.9" ] ],
+    [ "esp:22", "oled:SCL", "blue", [ "h33.64", "v-48", "h142.67" ] ],
+    [ "esp:3V3", "oled:VCC", "red", [ "v-38.4", "h263.01" ] ],
+    [ "esp:GND.3", "oled:GND", "black", [ "h24.04", "v-76.8", "h133.37" ] ],
+    [ "esp:GND.3", "lcd:GND", "black", [ "h24.04", "v-204.4" ] ]
   ],
   "dependencies": {}
 }
 ```
+
+> 💡 Esta aula **não usa** bibliotecas de display: não é preciso adicionar `i2c_lcd.py` nem `ssd1306.py`.
 
 ---
 

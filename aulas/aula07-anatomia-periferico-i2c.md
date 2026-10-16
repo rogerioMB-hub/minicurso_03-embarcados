@@ -182,11 +182,21 @@ oled_cmd(0x8D)          # configura a bomba de carga...
 oled_cmd(0x14)          # ...ligada (necessária para acender)
 oled_cmd(0xAF)          # liga o display
 
-print("OLED: acendendo todos os pixels")
+# 0x40 na frente avisa: "o que vem a seguir é DADO de imagem".
+# Cada byte de dado acende 8 pixels em coluna (1 bit = 1 pixel).
+def oled_pagina(pagina, padrao):
+    oled_cmd(0xB0 | pagina)     # escolhe a página (faixa de 8 linhas): 0 a 7
+    oled_cmd(0x00)              # coluna 0 (parte baixa do endereço)
+    oled_cmd(0x10)              # coluna 0 (parte alta do endereço)
+    i2c.writeto(OLED, bytes([0x40]) + bytes([padrao]) * 128)   # 128 colunas
+
+print("OLED: acendendo e apagando todos os pixels")
 for _ in range(3):
-    oled_cmd(0xA5)      # acende TODOS os pixels, ignorando a memória
+    for pg in range(8):
+        oled_pagina(pg, 0xFF)   # 0xFF = 11111111 -> 8 pixels acesos
     time.sleep(0.5)
-    oled_cmd(0xA4)      # volta a mostrar a memória (vazia = preto)
+    for pg in range(8):
+        oled_pagina(pg, 0x00)   # 0x00 = 00000000 -> 8 pixels apagados
     time.sleep(0.5)
 
 print("Fim: nenhuma biblioteca foi usada!")
@@ -196,6 +206,7 @@ print("Fim: nenhuma biblioteca foi usada!")
 
 - `writeto(LCD, bytes([0x08]))`: o PCF8574 recebe **um byte** e copia cada bit para um pino. Não existe "registrador": o byte **é** o estado dos pinos.
 - `writeto(OLED, bytes([0x00, c]))`: o SSD1306 recebe **dois bytes**. O primeiro (`0x00`) diz *"isto é um comando"*, e o segundo é o comando em si. Esse primeiro byte faz o papel de um **registrador**.
+- `writeto(OLED, bytes([0x40]) + ...)`: agora o primeiro byte é `0x40`, que diz *"o que vem é imagem"*. Os 128 bytes seguintes vão direto para a memória de vídeo, uma coluna de 8 pixels por byte.
 
 ---
 
@@ -203,8 +214,8 @@ print("Fim: nenhuma biblioteca foi usada!")
 
 1. Rode o código. Quais endereços o `scan()` mostra? Eles são os mesmos que você usava nas bibliotecas do MC03?
 2. No Wokwi, desconecte o fio SDA do OLED e rode de novo. O que muda no `scan()`? E o que acontece na linha `oled_cmd`?
-3. Troque `0xA5` por `0xA7` (modo invertido). Qual a diferença visual? *Dica:* `0xA6` volta ao normal.
-4. No OLED, troque o byte de controle `0x00` por `0x40`. O comando ainda funciona? Por quê?
+3. Troque o padrão `0xFF` por `0xAA` (`10101010`). O que aparece na tela? E com `0x0F`? Relacione cada bit com uma linha de pixels.
+4. Na função `oled_pagina`, troque o `0x40` por `0x00`. Os pixels ainda acendem? Por quê? *Dica:* o que o SSD1306 entende quando o primeiro byte é `0x00`?
 5. Por que o LCD **não precisa** de byte de controle e o OLED precisa?
 
 ---

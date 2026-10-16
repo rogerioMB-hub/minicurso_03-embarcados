@@ -5,11 +5,11 @@ title: "Aula 08 — ESP32 como target I2C"
 
 # Aula 08 — ESP32 como target I2C
 
-> **Seção 2 — O ESP32 como periférico.** Na Aula 7 você descobriu que um periférico é **um endereço + um mapa de registradores**, e projetou no papel o mapa de um periférico com LED RGB. Agora vamos **construir esse periférico de verdade**, usando um segundo ESP32.
+> **Seção 2 — O ESP32 como periférico.** Na Aula 7 você descobriu que um periférico é **um endereço + um mapa de registradores**, e projetou no papel o mapa de um periférico com LED RGB. Agora vamos **construir um periférico de verdade**, usando um segundo ESP32.
 
 ⏱️ Tempo estimado: 30 minutos · 🔧 **Bancada** (duas placas ESP32-C3 SuperMini)
 
-> ⚠️ **Por que não no Wokwi?** O simulador ainda não implementa o ESP32 no papel de target I2C. O código abaixo funciona no hardware real (MicroPython 1.25 ou mais novo).
+> ⚠️ **Por que não no Wokwi?** O simulador ainda não implementa o ESP32 no papel de target I2C. O código abaixo foi testado no hardware real (MicroPython 1.25 ou mais novo).
 
 ---
 
@@ -18,53 +18,37 @@ title: "Aula 08 — ESP32 como target I2C"
 Ao final desta aula, você será capaz de:
 
 1. **Configurar** um ESP32 como target I2C com `I2CTarget`, no endereço `0x42`.
-2. **Implementar** um mapa de registradores usando o `mem` como memória compartilhada.
-3. **Enviar** comandos e dados do controller com `writeto_mem()`.
-4. **Ler** o estado do target com `readfrom_mem()`, fazendo a comunicação nos dois sentidos.
-5. **Explicar** por que a ordem das escritas importa e por que o target "consome" o comando.
+2. **Explicar** como o `mem` funciona como banco de registradores, preenchido pelo hardware em segundo plano.
+3. **Enviar** comandos do controller para o target com `writeto_mem()`.
+4. **Identificar** um problema real do código (o comando que "fica parado" no registrador) e corrigi-lo.
+5. **Ampliar** o periférico seguindo um mapa de registradores, incluindo a leitura do estado com `readfrom_mem()` (desafio).
 
 ---
 
 ## 💡 Conceito
-
-### Do papel para o código
-
-Este é o mapa "oficial" do nosso periférico. **Compare com o que você projetou no desafio da Aula 7:** as ideias são as mesmas, mesmo que os números sejam outros.
-
-![Mapa de registradores do periférico 0x42](../assets/fig09-mapa-registradores.png)
 
 ### O `mem` é o banco de registradores
 
 No target, criamos um `bytearray` e o entregamos ao `I2CTarget`:
 
 ```python
-mem = bytearray(8)
+mem = bytearray(16)
 t = I2CTarget(0, addr=0x42, mem=mem, scl=Pin(7), sda=Pin(6))
 ```
 
-A partir daí, **o hardware I2C escreve no `mem` sozinho**, em segundo plano. Quando o controller executa `writeto_mem(0x42, 1, bytes([255, 0, 128]))`, o target recebe os bytes e os guarda em `mem[1]`, `mem[2]` e `mem[3]`, sem que o programa do target precise fazer nada. O laço principal só precisa **olhar** o `mem` de tempos em tempos.
+A partir daí, **o hardware I2C escreve no `mem` sozinho**, em segundo plano. Quando o controller executa `writeto_mem(0x42, 0, b'\x01')`, o target recebe o byte e o guarda em `mem[0]`, sem que o programa do target precise fazer nada. O laço principal só precisa **olhar** o `mem` de tempos em tempos.
 
-> 📏 **Regra do tamanho:** o `mem` deve ser **maior** que o maior bloco que o controller vai enviar, contando o byte do registrador. Com `bytearray(8)` temos folga para os registradores 0 a 7.
+> 📏 **Regra do tamanho:** o `mem` deve ser **maior** que o maior bloco que o controller vai enviar, contando o byte do registrador. Com `bytearray(16)` temos folga para os registradores 0 a 15.
 
-### Comando consumido
+### O mapa desta aula
 
-Depois de executar um comando, o target escreve `mem[0] = 0`. Isso diz: *"já fiz, pode mandar o próximo"*. Sem essa linha, o comando continua parado no registrador e o target não consegue distinguir um comando novo de um antigo.
+Nesta aula usamos **só o registrador 0**, como registrador de comando:
 
-### A ordem importa
+| Registrador | Quem escreve | Valores |
+|---|---|---|
+| 0 (COMANDO) | controller | `1` = ligar o arco-íris · `2` = desligar · `0` = parado |
 
-Para pedir uma cor fixa, o controller envia **duas** mensagens: os dados e o comando. Se o comando chegasse primeiro, o target poderia agir **antes** de a cor nova chegar, e acenderia a cor antiga. Por isso: **primeiro os dados, depois o comando.**
-
-![Sequência de mensagens para a cor fixa](../assets/fig10-sequencia-cor-fixa.png)
-
-### Ida e volta
-
-O registrador 4 (STATUS) é escrito pelo **target**. O controller o lê com:
-
-```python
-estado = i2c.readfrom_mem(0x42, 4, 1)[0]   # lê 1 byte a partir do registrador 4
-```
-
-Assim o controller pode **conferir** se o periférico fez o que foi pedido.
+No desafio, você vai ampliar esse mapa para incluir cor fixa e um registrador de estado.
 
 ---
 
@@ -89,7 +73,7 @@ No **target**, o LED RGB de catodo comum:
 
 <img src="../assets/fig11-montagem-bancada.jpg" alt="Montagem na bancada: duas ESP32-C3 SuperMini e o LED RGB" width="420">
 
-*Montagem real na bancada: o controller à esquerda, o target à direita e o LED RGB comandado por I2C.*
+*Montagem real na bancada: duas ESP32-C3 SuperMini ligadas por I2C e o LED RGB no target.*
 
 ### ✅ Checklist de montagem
 
@@ -106,18 +90,10 @@ No **target**, o LED RGB de catodo comum:
 ### Target (`main.py` da placa com o LED)
 
 ```python
-# Aula 08 — TARGET: periférico I2C com LED RGB no endereço 0x42
 from machine import I2CTarget, Pin, PWM
 import time
 
-INVERTIDO = False   # catodo comum (anodo comum: True)
-
-# --- Mapa de registradores ---
-REG_CMD    = 0      # controller escreve: 1 arco-íris, 2 desligar, 3 cor fixa
-REG_R      = 1      # controller escreve: vermelho 0..255
-REG_G      = 2      # controller escreve: verde 0..255
-REG_B      = 3      # controller escreve: azul 0..255
-REG_STATUS = 4      # TARGET escreve: 0 desligado, 1 arco-íris, 2 cor fixa
+INVERTIDO = False   # catodo comum
 
 pr = PWM(Pin(0), freq=1000, duty_u16=0)
 pg = PWM(Pin(1), freq=1000, duty_u16=0)
@@ -128,153 +104,155 @@ def cor(r, g, b):          # valores de 0.0 a 1.0
         d = int(v * 65535)
         p.duty_u16(65535 - d if INVERTIDO else d)
 
-def matiz(h):              # h de 0.0 a 1.0 -> cor do arco-íris
+def matiz(h):              # h de 0.0 a 1.0 -> cor do arco-iris
     i = int(h * 6)
     f = h * 6 - i
     q = 1 - f
     return [(1, f, 0), (q, 1, 0), (0, 1, f),
             (0, q, 1), (f, 0, 1), (1, 0, q)][i % 6]
 
-mem = bytearray(8)         # 8 registradores (0 a 7)
+mem = bytearray(16)        # mem[0]: 1 = ligar, 2 = desligar, 0 = parado
 t = I2CTarget(0, addr=0x42, mem=mem, scl=Pin(7), sda=Pin(6))
 print("target pronto, aguardando")
 
 cor(0, 0, 0)
-modo = 0                   # 0 desligado, 1 arco-íris, 2 cor fixa
+ligado = False
 h = 0.0
 
 while True:
-    cmd = mem[REG_CMD]
-
-    if cmd == 1:                        # ligar arco-íris
-        print("recebido: arco-íris")
-        modo = 1
+    cmd = mem[0]
+    if cmd == 1 and not ligado:
+        print("recebido: ligar")
+        ligado = True
         h = 0.0
-        mem[REG_CMD] = 0                # comando consumido
-
-    elif cmd == 2:                      # desligar
+    elif cmd == 2:
         print("recebido: desligar")
+        ligado = False
         for _ in range(3):
             cor(1, 0, 0)
             time.sleep_ms(300)
             cor(0, 0, 0)
             time.sleep_ms(300)
-        modo = 0
-        mem[REG_CMD] = 0
+        mem[0] = 0
+        print("desligado")
 
-    elif cmd == 3:                      # cor fixa
-        r, g, b = mem[REG_R], mem[REG_G], mem[REG_B]
-        print("recebido: cor fixa", r, g, b)
-        cor(r / 255, g / 255, b / 255)  # 0..255 -> 0.0..1.0
-        modo = 2
-        mem[REG_CMD] = 0
-
-    mem[REG_STATUS] = modo              # o controller pode ler este registrador
-
-    if modo == 1:
+    if ligado:
         cor(*matiz(h))
-        h = (h + 0.003) % 1.0           # volta completa de cor em ~6,7 s
+        h = (h + 0.003) % 1.0   # volta completa de cor em ~6,7 s
     time.sleep_ms(20)
 ```
 
 ### Controller (`main.py` da outra placa)
 
 ```python
-# Aula 08 — CONTROLLER: comanda o periférico 0x42
 from machine import I2C, Pin
 import time
 
 ENDERECO = 0x42
-REG_CMD, REG_R, REG_STATUS = 0, 1, 4
-NOMES = {0: "desligado", 1: "arco-íris", 2: "cor fixa"}
-
 i2c = I2C(0, scl=Pin(7), sda=Pin(6), freq=100000)
+print("scan:", i2c.scan())      # deve aparecer [66]
 
-achados = i2c.scan()
-print("scan:", achados)                 # deve aparecer [66], que é 0x42
-if ENDERECO not in achados:
-    raise SystemExit("target 0x42 não encontrado: confira fios, GND e pull-ups")
+for s in range(5, 0, -1):
+    print("enviando em", s)
+    time.sleep(1)
 
-def contagem(texto, segundos):
-    for s in range(segundos, 0, -1):
-        print(texto, s)
-        time.sleep(1)
+i2c.writeto_mem(ENDERECO, 0, b'\x01')
+print("sinal de ligar enviado")
 
-def status():
-    estado = i2c.readfrom_mem(ENDERECO, REG_STATUS, 1)[0]
-    print("  status do target:", estado, "=", NOMES.get(estado, "?"))
+for s in range(30, 0, -1):
+    print("avisando em", s)
+    time.sleep(1)
 
-contagem("arco-íris em", 3)
-i2c.writeto_mem(ENDERECO, REG_CMD, b'\x01')
-print("sinal de arco-íris enviado")
-time.sleep_ms(100)
-status()
-
-contagem("cor fixa em", 10)
-i2c.writeto_mem(ENDERECO, REG_R, bytes([255, 0, 128]))   # 1º: os dados (R, G, B)
-i2c.writeto_mem(ENDERECO, REG_CMD, b'\x03')              # 2º: o comando
-print("sinal de cor fixa enviado")
-time.sleep_ms(100)
-status()
-
-contagem("desligando em", 5)
-i2c.writeto_mem(ENDERECO, REG_CMD, b'\x02')
+i2c.writeto_mem(ENDERECO, 0, b'\x02')
 print("sinal de desligar enviado")
-time.sleep(2)                           # espera o pisca terminar
-status()
 ```
 
 ### Como ler este código
 
-- **`mem[REG_CMD] = 0`** aparece em todo comando: é o "comando consumido".
-- **`mem[REG_STATUS] = modo`** roda em toda volta do laço: o registrador 4 sempre mostra o estado atual.
-- No controller, **`writeto_mem(ENDERECO, REG_R, bytes([255, 0, 128]))`** escreve 3 bytes de uma vez, a partir do registrador 1: eles caem em `mem[1]`, `mem[2]` e `mem[3]`.
-- O **`time.sleep_ms(100)`** antes de cada `status()` dá tempo ao laço do target (que dorme 20 ms por volta) de perceber o comando e atualizar o STATUS.
+**No target:**
 
-### O que esperar no Shell do controller
+- `PWM(Pin(0), freq=1000, duty_u16=0)`: cada cor do LED é controlada por PWM. O `duty_u16` vai de 0 (apagado) a 65535 (brilho máximo).
+- `cor(r, g, b)`: recebe cada cor de 0.0 a 1.0 e converte para o PWM. Se o LED for de anodo comum, `INVERTIDO = True` inverte a lógica.
+- `matiz(h)`: transforma um número de 0.0 a 1.0 em uma cor do arco-íris, passando por 6 trechos (vermelho → amarelo → verde → ciano → azul → magenta).
+- `I2CTarget(0, addr=0x42, mem=mem, ...)`: **é aqui que o ESP32 vira periférico.** Ele passa a responder no endereço `0x42` e a guardar no `mem` tudo o que o controller escrever.
+- O laço `while True` olha `mem[0]` a cada 20 ms. Esse jeito de conferir repetidamente é chamado de *polling*.
+- No desligar, o target escreve `mem[0] = 0` depois das piscadas: ele "limpa" o comando para não piscar de novo na próxima volta.
+
+**No controller:**
+
+- `i2c.scan()` confirma que o target está no barramento: `[66]` é `0x42` em decimal.
+- `writeto_mem(ENDERECO, 0, b'\x01')`: escreve o valor `1` no **registrador 0** do target. É exatamente a mesma função que usaríamos para um sensor ou um display comercial: para o controller, o ESP32 target é só mais um endereço no barramento.
+
+### O que esperar
+
+**No Shell do controller:**
 
 ```
 scan: [66]
-arco-íris em 3 ...
-sinal de arco-íris enviado
-  status do target: 1 = arco-íris
-cor fixa em 10 ...
-sinal de cor fixa enviado
-  status do target: 2 = cor fixa
-desligando em 5 ...
+enviando em 5 ... 1
+sinal de ligar enviado
+avisando em 30 ... 1
 sinal de desligar enviado
-  status do target: 0 = desligado
 ```
+
+**No Shell do target:**
+
+```
+target pronto, aguardando
+recebido: ligar
+recebido: desligar
+desligado
+```
+
+**No LED:** o arco-íris gira por 30 s (umas 4 voltas completas de cor), depois vêm 3 piscadas vermelhas e o LED apaga.
 
 <video src="../assets/fig12-funcionando-bancada.mp4" width="320" autoplay loop muted playsinline controls></video>
 
-*O periférico funcionando: o arco-íris percorre as cores e, no final, vêm as piscadas vermelhas do desligar.* ([abrir o vídeo](../assets/fig12-funcionando-bancada.mp4))
-
-No LED, com o código desta aula: arco-íris por 10 s, depois um rosa-magenta fixo (`255, 0, 128`), depois 3 piscadas vermelhas e apaga.
+*O periférico funcionando na bancada: o arco-íris e, no final, as piscadas vermelhas do desligar.* ([abrir o vídeo](../assets/fig12-funcionando-bancada.mp4))
 
 ---
 
 ## 🔬 Experimento
 
 1. Com tudo rodando, desconecte o fio de GND entre as placas e reinicie o controller. O que o `scan()` mostra?
-2. No controller, envie o comando `1` duas vezes seguidas, com 3 s de intervalo. O arco-íris **recomeça** do vermelho? Por quê? *Dica:* procure o `mem[REG_CMD] = 0`.
-3. Comente a linha `mem[REG_CMD] = 0` do comando 1 no target e repita o teste 2. O que muda?
-4. No controller, inverta a ordem: envie o comando `3` **antes** do RGB, mude a cor para `0, 255, 0` e coloque um `time.sleep_ms(500)` entre as duas escritas. Qual cor aparece primeiro no LED? Agora tire a pausa: o erro some? *(Ele fica raro, mas não impossível: é o tipo de defeito que aparece "às vezes" e dá muito trabalho para achar.)*
-5. Troque o `time.sleep(2)` antes do último `status()` por `time.sleep_ms(100)`. Que estado aparece? Por quê? *Dica:* o que o target está fazendo durante as piscadas?
+2. Mude o controller para enviar o comando `1`, esperar 5 s e enviar `1` **de novo**. O arco-íris recomeça do vermelho? Por quê? *Dica:* olhe a condição `cmd == 1 and not ligado`.
+3. Depois do "ligar", qual valor fica guardado em `mem[0]`? E depois do "desligar"? Por que o código zera o `mem[0]` só no desligar?
+4. Mude o endereço no target para `0x43` (só no target). O que acontece no controller? Por quê?
+5. Envie o comando `5`, que não existe. O que o target faz? Isso é um problema?
 
 ---
 
 ## 🏆 Desafio
 
-### Principal: registrador de brilho
+### Principal: periférico completo
 
-Use o registrador 5 como **BRILHO**, de 0 a 100 (%). No target, multiplique as cores pelo brilho antes de chamar `cor()`, tanto no arco-íris quanto na cor fixa. No controller, envie `writeto_mem(0x42, 5, bytes([30]))` e veja o LED ficar mais fraco.
+Amplie o periférico seguindo este mapa de registradores (compare com o que você projetou na Aula 7):
 
-*Pergunta para pensar:* o que deve acontecer se o controller nunca escrever no registrador 5? Que valor inicial faz sentido?
+![Mapa de registradores do periférico 0x42](../assets/fig09-mapa-registradores.png)
 
-### Bônus: sem ficar olhando o `mem`
+O que você precisa implementar:
 
-Hoje o target confere `mem[0]` a cada 20 ms (isso se chama *polling*). O `I2CTarget` também pode **avisar** o programa quando uma escrita termina, chamando uma função sua (*callback* de interrupção). Pesquise o método `irq()` do `I2CTarget` na documentação do MicroPython e tente usá-lo.
+1. **Comando consumido:** em **todo** comando, o target faz `mem[0] = 0` depois de agir. Assim, enviar `1` duas vezes reinicia o arco-íris (resolve o experimento 2).
+2. **Cor fixa (comando 3):** o target lê `mem[1]`, `mem[2]` e `mem[3]` (0 a 255) e acende essa cor. Lembre que `cor()` espera valores de 0.0 a 1.0.
+3. **STATUS (registrador 4):** o target grava ali o modo atual (0 desligado, 1 arco-íris, 2 cor fixa). O controller lê com:
+
+```python
+estado = i2c.readfrom_mem(0x42, 4, 1)[0]   # lê 1 byte a partir do registrador 4
+```
+
+⚠️ **A ordem importa.** Para a cor fixa, o controller precisa enviar **primeiro os dados** e **depois o comando**. Se o comando chegar antes, o target pode acender a cor antiga:
+
+![Sequência de mensagens para a cor fixa](../assets/fig10-sequencia-cor-fixa.png)
+
+*Teste:* inverta a ordem e coloque um `time.sleep_ms(500)` entre as duas escritas. Qual cor aparece primeiro? Agora tire a pausa: o erro some? *(Ele fica raro, mas não impossível: é o tipo de defeito que aparece "às vezes" e dá muito trabalho para achar.)*
+
+### Bônus 1: brilho
+
+Use o registrador 5 como **BRILHO** (0 a 100 %), aplicado tanto ao arco-íris quanto à cor fixa. Que valor inicial faz sentido se o controller nunca escrever nesse registrador?
+
+### Bônus 2: sem *polling*
+
+O `I2CTarget` também pode **avisar** o programa quando uma escrita termina, chamando uma função sua (*callback* de interrupção). Pesquise o método `irq()` do `I2CTarget` na documentação do MicroPython e tente usá-lo no lugar de conferir `mem[0]` a cada 20 ms.
 
 ---
 
@@ -295,13 +273,13 @@ Hoje o target confere `mem[0]` a cada 20 ms (isso se chama *polling*). O `I2CTar
 | Conceito | No código |
 |---|---|
 | Criar o periférico | `I2CTarget(0, addr=0x42, mem=mem, ...)` |
-| Registradores | posições do `mem` (`mem[0]` a `mem[7]`) |
+| Registradores | posições do `mem` (`mem[0]`, `mem[1]`...) |
 | Controller escreve | `writeto_mem(0x42, registrador, dados)` |
 | Controller lê | `readfrom_mem(0x42, registrador, quantidade)` |
-| Comando consumido | o target faz `mem[0] = 0` depois de agir |
-| Ordem das escritas | **dados primeiro, comando depois** |
+| Target confere comandos | *polling*: olha o `mem` a cada volta do laço |
+| Limpar o comando | o target faz `mem[0] = 0` depois de agir |
 
-➡️ **Próxima aula:** vamos juntar tudo em um **projeto integrador**: o controller comanda o LED RGB e mostra o status do periférico no **OLED**.
+➡️ **Próxima aula:** vamos juntar tudo em um **projeto integrador**: o controller comanda o LED RGB e mostra o estado do periférico no **OLED**.
 
 ---
 

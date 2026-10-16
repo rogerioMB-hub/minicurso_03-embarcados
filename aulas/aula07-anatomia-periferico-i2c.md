@@ -232,13 +232,48 @@ Ou seja: quando você chamava `SSD1306_I2C(128, 64, i2c)`, a biblioteca enviava 
 
 #### Como a memória de vídeo é organizada
 
-A tela de 128×64 pixels é dividida em **8 páginas**, cada uma com 8 linhas de altura e 128 colunas. Cada **byte** de dado ocupa uma coluna de uma página: o **bit 0 é o pixel de cima** e o **bit 7, o de baixo**.
+Vamos montar a tela do OLED em **4 passos**, do menor pedaço para o maior.
+
+**Passo 1: um byte acende 8 pixels.**
+O I2C sempre envia **bytes**, e um byte tem **8 bits**. No OLED, cada bit controla **um pixel**: `1` acende, `0` apaga. Então cada byte enviado controla 8 pixels de uma vez.
+
+**Passo 2: esses 8 pixels ficam em pé.**
+O SSD1306 arruma os 8 pixels de um byte **um embaixo do outro**, como uma pilha de 8 lâmpadas. O **bit 0 fica em cima** e o **bit 7 fica embaixo**.
+
+> 🔁 **Compare com a Aula 4:** no caractere customizado do LCD, cada byte era uma **linha deitada** de pixels. No OLED é o contrário: cada byte é uma **coluna em pé**.
+
+**Passo 3: 128 pilhas lado a lado formam uma faixa.**
+Colocando 128 dessas pilhas uma ao lado da outra, temos uma **faixa** com 128 pixels de largura e 8 de altura. O datasheet chama essa faixa de **página**.
+
+**Passo 4: 8 faixas empilhadas formam a tela.**
+Empilhando 8 faixas (páginas 0 a 7), chegamos à tela inteira: 8 × 8 = **64 linhas** de altura e **128 colunas** de largura.
 
 ![Organização da memória do OLED em páginas](../assets/fig08-oled-paginas.png)
 
-> No exemplo da figura, o byte `0xAA` (`10101010`) foi escrito na página 2, coluna 40: acendem os pixels dos bits 1, 3, 5 e 7, alternados de cima para baixo.
+#### Exemplo: o que o byte `0xAA` desenha?
 
-Por isso `oled_pagina()` envia **128 bytes** (uma página inteira) e o laço repete para as **8 páginas**: 8 × 128 = 1024 bytes cobrem a tela toda.
+Na figura, o byte `0xAA` foi enviado para a página 2, coluna 40. Em binário, `0xAA` é `10101010`. Lendo bit a bit, **do bit 0 (em cima) até o bit 7 (embaixo)**:
+
+| Bit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| Valor | 0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 |
+| Pixel | apagado | **aceso** | apagado | **aceso** | apagado | **aceso** | apagado | **aceso** |
+
+Resultado: uma colunazinha "pontilhada", com um pixel aceso e um apagado, de cima para baixo.
+
+> ⚠️ **Cuidado:** escrevemos `10101010` da esquerda para a direita, começando pelo bit 7. Na tela, a pilha começa pelo **bit 0** em cima. Por isso a ordem parece invertida.
+
+#### E o código?
+
+Agora a função `oled_pagina()` faz sentido:
+
+- ela escolhe **uma faixa** (`0xB0 | pagina`);
+- coloca o cursor na **coluna 0**;
+- envia **128 bytes**, um para cada pilha da faixa.
+
+E o laço `for pg in range(8)` repete isso para as **8 faixas**. No total: 8 × 128 = **1024 bytes** para pintar a tela inteira.
+
+> ✅ **Teste rápido:** se você enviar `0x01` em vez de `0xFF` para todas as páginas, o que aparece na tela? *(Resposta: 8 linhas horizontais finas, uma no topo de cada faixa, porque só o bit 0 de cada pilha acende.)*
 
 #### E o byte de controle?
 

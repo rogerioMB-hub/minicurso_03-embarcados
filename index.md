@@ -16,6 +16,8 @@ comunicação UART entre dois ESP32.
 
 ## Aulas
 
+### Seção 1 — O ESP32 como controller
+
 | # | Aula | Conteúdo |
 |---|------|----------|
 | 1 | [O que é I2C e como varrer o barramento](aulas/aula01-i2c-scan.md) | SDA, SCL, endereços, `i2c.scan()` |
@@ -24,6 +26,14 @@ comunicação UART entre dois ESP32.
 | 4 | [LCD 16x2 — caracteres customizados](aulas/aula04-lcd-custom.md) | Matriz 5×8, máscara de bits |
 | 5 | [OLED SSD1306 — primeiros pixels](aulas/aula05-oled-text.md) | Framebuffer, `text()`, `show()` |
 | 6 | [OLED — formas e barra de progresso](aulas/aula06-oled-graficos.md) | `pixel()`, `line()`, `rect()` |
+
+### Seção 2 — O ESP32 como periférico
+
+| # | Aula | Conteúdo |
+|---|------|----------|
+| 7 | [Anatomia de um periférico I2C](https://rogeriomb-hub.github.io/minicurso_03-embarcados/aulas/aula07-anatomia-periferico-i2c) | Controller × target, registradores, datasheet |
+| 8 | ESP32 como target I2C *(em breve)* | `I2CTarget`, LED RGB · bancada |
+| 9 | Projeto integrador *(em breve)* | Controller + OLED + target · bancada |
 
 ---
 

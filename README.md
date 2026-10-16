@@ -49,3 +49,6 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 - **OLED SSD1306:** `ssd1306.py` (incluída em `assets/libs/`) — adicione ao projeto Wokwi.
 - **Aula 7:** não usa bibliotecas de display (comunicação direta com `writeto()`).
 
+## 👏 Créditos
+
+- **Aula 8:** códigos, montagem na bancada, foto e vídeo de **Noah Teodoro Ceiglinski Domingues**, aluno do Curso Técnico em Automação Industrial (modalidade subsequente) do IFRS Campus Rio Grande.

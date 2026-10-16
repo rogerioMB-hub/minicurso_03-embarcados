@@ -18,8 +18,9 @@ Ao final desta aula, você será capaz de:
 1. **Explicar** que *controller* e *target* são **papéis** no barramento, e não tipos de chip.
 2. **Identificar** os dispositivos de um barramento I2C pelo endereço, usando `scan()`.
 3. **Comandar** o LCD e o OLED **sem biblioteca**, enviando bytes com `writeto()`, e entender o que as bibliotecas do MC03 faziam por você.
-4. **Descrever** um periférico como **um endereço + um mapa de registradores**.
-5. **Projetar** o mapa de registradores do periférico que você vai construir na Aula 08.
+4. **Consultar** a tabela de comandos de um datasheet e relacioná-la com o código de uma biblioteca.
+5. **Descrever** um periférico como **um endereço + um mapa de registradores**.
+6. **Projetar** o mapa de registradores do periférico que você vai construir na Aula 08.
 
 ---
 
@@ -208,6 +209,60 @@ print("Fim: nenhuma biblioteca foi usada!")
 - `writeto(OLED, bytes([0x00, c]))`: o SSD1306 recebe **dois bytes**. O primeiro (`0x00`) diz *"isto é um comando"*, e o segundo é o comando em si. Esse primeiro byte faz o papel de um **registrador**.
 - `writeto(OLED, bytes([0x40]) + ...)`: agora o primeiro byte é `0x40`, que diz *"o que vem é imagem"*. Os 128 bytes seguintes vão direto para a memória de vídeo, uma coluna de 8 pixels por byte.
 
+### De onde vêm esses comandos?
+
+Nenhum desses números foi inventado. Todo chip vem com uma **folha de dados** (*datasheet*): o manual do fabricante, que lista cada comando que o chip entende. Os códigos usados aqui estão na tabela de comandos do **datasheet do SSD1306**.
+
+| Comando | O que faz no SSD1306 |
+|---|---|
+| `0xAE` | Desliga o display (modo *sleep*) |
+| `0x8D`, `0x14` | Liga a **bomba de carga**, o circuito interno que gera a tensão alta que os pixels OLED precisam. Sem ela, nada acende |
+| `0xAF` | Liga o display |
+| `0xB0` a `0xB7` | Escolhe a **página** 0 a 7 (`0xB0 \| pagina`) |
+| `0x00` e `0x10` | Posicionam o cursor na **coluna 0**: o endereço da coluna é dividido em duas metades de 4 bits, uma em cada comando |
+
+**A prova de que a biblioteca faz o mesmo:** abra o arquivo `ssd1306.py` que você usou nas aulas 5 e 6 (está em `assets/libs/`). Lá estão os mesmos números, só que com nomes:
+
+```python
+SET_DISP = const(0xAE)          # 0xAE = desliga, 0xAE | 0x01 = 0xAF = liga
+SET_CHARGE_PUMP = const(0x8D)   # seguido de 0x14, como no nosso código
+```
+
+Ou seja: quando você chamava `SSD1306_I2C(128, 64, i2c)`, a biblioteca enviava esta mesma sequência ao iniciar o display.
+
+#### Como a memória de vídeo é organizada
+
+A tela de 128×64 pixels é dividida em **8 páginas**, cada uma com 8 linhas de altura e 128 colunas. Cada **byte** de dado ocupa uma coluna de uma página: o **bit 0 é o pixel de cima** e o **bit 7, o de baixo**.
+
+```
+           coluna 0   coluna 1   ...   coluna 127
+página 0   [byte]     [byte]     ...   [byte]      ← linhas 0 a 7
+página 1   [byte]     [byte]     ...   [byte]      ← linhas 8 a 15
+  ...
+página 7   [byte]     [byte]     ...   [byte]      ← linhas 56 a 63
+```
+
+Por isso `oled_pagina()` envia **128 bytes** (uma página inteira) e o laço repete para as **8 páginas**: 8 × 128 = 1024 bytes cobrem a tela toda.
+
+#### E o byte de controle?
+
+O primeiro byte de cada envio ao SSD1306 tem dois bits com significado:
+
+| Bit | Nome | Significado |
+|---|---|---|
+| 7 | Co | 1 = depois deste dado vem outro byte de controle |
+| 6 | D/C# | 0 = **comando**, 1 = **dado** de imagem |
+
+- `0x00` = `00000000`: comando (o que usamos em `oled_cmd`);
+- `0x40` = `01000000`: dado de imagem;
+- `0x80` = `10000000`: também é comando. É o valor que a biblioteca `ssd1306.py` usa em `write_cmd()`. Para um único comando por envio, `0x00` e `0x80` funcionam igual.
+
+#### E o `0x08` do LCD?
+
+O PCF8574 não tem comandos: ele copia os 8 bits para 8 pinos. Quem decide o que cada pino faz é a **plaquinha** soldada atrás do LCD. Nos módulos mais comuns (e no Wokwi), o pino P3 controla o transistor da luz de fundo. Por isso o bit 3 (`0x08`) liga e desliga o backlight.
+
+> 🔎 **Hábito de profissional:** antes de usar um chip novo, procure o datasheet e a tabela de comandos. Biblioteca nenhuma faz algo que o datasheet não permita.
+
 ---
 
 ## 🔬 Experimento
@@ -252,6 +307,7 @@ Explique por que um periférico com mapa de registradores é **mais fácil de re
 - **Controller** inicia a conversa e gera o clock. **Target** responde ao seu endereço. São papéis, e o ESP32 pode fazer os dois.
 - `scan()` lista os endereços presentes no barramento.
 - Por baixo de toda biblioteca I2C existem `writeto()` e `writeto_mem()`.
+- Os códigos de comando vêm do **datasheet** do chip; a biblioteca só dá nomes a eles.
 - Um periférico = **endereço + mapa de registradores**.
 - Cada chip define seu mapa: o PCF8574 não tem registradores; o SSD1306 usa um byte de controle (`0x00` comando, `0x40` dado).
 

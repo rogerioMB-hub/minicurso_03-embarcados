@@ -87,7 +87,9 @@ No **target**, o LED RGB de catodo comum:
 
 > 📌 **Pinos evitados:** GPIO2, GPIO8 e GPIO9 são pinos de *strapping* do C3 (definem o modo de boot). O GPIO8 também é o LED da placa.
 
-<!-- FOTO DA MONTAGEM: assets/fig11-montagem-bancada.jpg (a fornecer) -->
+<img src="../assets/fig11-montagem-bancada.jpg" alt="Montagem na bancada: duas ESP32-C3 SuperMini e o LED RGB" width="420">
+
+*Montagem real na bancada: o controller à esquerda, o target à direita e o LED RGB comandado por I2C.*
 
 ### ✅ Checklist de montagem
 
@@ -244,7 +246,11 @@ sinal de desligar enviado
   status do target: 0 = desligado
 ```
 
-E no LED: arco-íris por 10 s, depois um rosa-magenta fixo (`255, 0, 128`), depois 3 piscadas vermelhas e apaga.
+<video src="../assets/fig12-funcionando-bancada.mp4" width="320" autoplay loop muted playsinline controls></video>
+
+*O periférico funcionando: o arco-íris percorre as cores e, no final, vêm as piscadas vermelhas do desligar.* ([abrir o vídeo](../assets/fig12-funcionando-bancada.mp4))
+
+No LED, com o código desta aula: arco-íris por 10 s, depois um rosa-magenta fixo (`255, 0, 128`), depois 3 piscadas vermelhas e apaga.
 
 ---
 

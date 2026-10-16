@@ -12,6 +12,8 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 
 ## 📚 Aulas
 
+### Seção 1 — O ESP32 como controller
+
 | # | Aula | O que você aprende |
 |---|------|--------------------|
 | 1 | [O que é I2C e como varrer o barramento](aulas/aula01-i2c-scan.md) | SDA, SCL, endereços, `i2c.scan()` |
@@ -20,6 +22,16 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 | 4 | [LCD 16x2 — caracteres customizados](aulas/aula04-lcd-custom.md) | Matriz 5×8, máscara de bits (retoma o curso 1!) |
 | 5 | [OLED SSD1306 — primeiros pixels](aulas/aula05-oled-text.md) | Framebuffer, `text()`, `show()` |
 | 6 | [OLED — formas e barra de progresso](aulas/aula06-oled-graficos.md) | `pixel()`, `line()`, `rect()`, `fill_rect()` |
+
+### Seção 2 — O ESP32 como periférico
+
+| # | Aula | O que você aprende | Onde roda |
+|---|------|--------------------|-----------|
+| 7 | [Anatomia de um periférico I2C](aulas/aula07-anatomia-periferico-i2c.md) | Controller × target, registradores, comandos sem biblioteca, datasheet | Wokwi |
+| 8 | ESP32 como target I2C *(em breve)* | `I2CTarget`, LED RGB comandado por outro ESP32 | Bancada |
+| 9 | Projeto integrador *(em breve)* | Controller + OLED + target, leitura de status | Bancada |
+
+> 🔧 As aulas 8 e 9 exigem **duas placas ESP32**: o Wokwi ainda não simula o ESP32 como target I2C.
 
 ## 🔧 Como usar
 
@@ -35,4 +47,5 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 
 - **LCD 16x2:** `lcd_api.py` + `i2c_lcd.py` (incluídas em `assets/libs/`)
 - **OLED SSD1306:** `ssd1306.py` (incluída em `assets/libs/`) — adicione ao projeto Wokwi.
+- **Aula 7:** não usa bibliotecas de display (comunicação direta com `writeto()`).
 

@@ -234,13 +234,9 @@ Ou seja: quando você chamava `SSD1306_I2C(128, 64, i2c)`, a biblioteca enviava 
 
 A tela de 128×64 pixels é dividida em **8 páginas**, cada uma com 8 linhas de altura e 128 colunas. Cada **byte** de dado ocupa uma coluna de uma página: o **bit 0 é o pixel de cima** e o **bit 7, o de baixo**.
 
-```
-           coluna 0   coluna 1   ...   coluna 127
-página 0   [byte]     [byte]     ...   [byte]      ← linhas 0 a 7
-página 1   [byte]     [byte]     ...   [byte]      ← linhas 8 a 15
-  ...
-página 7   [byte]     [byte]     ...   [byte]      ← linhas 56 a 63
-```
+![Organização da memória do OLED em páginas](../assets/fig08-oled-paginas.png)
+
+> No exemplo da figura, o byte `0xAA` (`10101010`) foi escrito na página 2, coluna 40: acendem os pixels dos bits 1, 3, 5 e 7, alternados de cima para baixo.
 
 Por isso `oled_pagina()` envia **128 bytes** (uma página inteira) e o laço repete para as **8 páginas**: 8 × 128 = 1024 bytes cobrem a tela toda.
 

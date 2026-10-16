@@ -60,6 +60,10 @@ Pense em um periférico como um **prédio**:
 
 Para entregar um dado, o controller diz: *"prédio 0x42, apartamento 0, aqui está o valor 1"*. É exatamente isso que `writeto_mem(0x42, 0, b'\x01')` faz.
 
+![Analogia do prédio: endereço e registradores](../assets/fig03-predio-registradores.png)
+
+> Cada prédio é um dispositivo no barramento (0x27, 0x3C, 0x42). Dentro do prédio 0x42, cada andar é um registrador. Na figura, o controller entrega o valor 1 no **registrador 2**: `writeto_mem(0x42, 2, b'\x01')`.
+
 O primeiro byte depois do endereço diz **onde** o dado deve ir (o registrador). Cada chip define seu próprio mapa:
 
 | Chip | Como diferencia o destino do dado |

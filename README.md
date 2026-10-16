@@ -28,7 +28,7 @@ comunicação UART entre dois ESP32 (próximo mini-curso).
 | # | Aula | O que você aprende | Onde roda |
 |---|------|--------------------|-----------|
 | 7 | [Anatomia de um periférico I2C](aulas/aula07-anatomia-periferico-i2c.md) | Controller × target, registradores, comandos sem biblioteca, datasheet | Wokwi |
-| 8 | ESP32 como target I2C *(em breve)* | `I2CTarget`, LED RGB comandado por outro ESP32 | Bancada |
+| 8 | [ESP32 como target I2C](aulas/aula08-esp32-target.md) | `I2CTarget`, LED RGB comandado por outro ESP32 | Bancada |
 | 9 | Projeto integrador *(em breve)* | Controller + OLED + target, leitura de status | Bancada |
 
 > 🔧 As aulas 8 e 9 exigem **duas placas ESP32**: o Wokwi ainda não simula o ESP32 como target I2C.

@@ -73,7 +73,7 @@ No **target**, o LED RGB de catodo comum:
 
 <img src="../assets/fig11-montagem-bancada.jpg" alt="Montagem na bancada: duas ESP32-C3 SuperMini e o LED RGB" width="420">
 
-*Montagem real na bancada: duas ESP32-C3 SuperMini ligadas por I2C e o LED RGB no target.*
+*Montagem real na bancada: duas ESP32-C3 SuperMini ligadas por I2C e o LED RGB no target. Montagem e foto: Noah Teodoro Ceiglinski Domingues.*
 
 ### ✅ Checklist de montagem
 
@@ -86,6 +86,8 @@ No **target**, o LED RGB de catodo comum:
 ---
 
 ## 💻 Código
+
+> 👏 **Créditos:** os códigos do target e do controller, a montagem na bancada, a foto e o vídeo desta aula são de autoria de **Noah Teodoro Ceiglinski Domingues**, aluno do Curso Técnico em Automação Industrial (modalidade subsequente) do IFRS Campus Rio Grande.
 
 ### Target (`main.py` da placa com o LED)
 
@@ -208,7 +210,7 @@ desligado
 
 <video src="../assets/fig12-funcionando-bancada.mp4" width="320" autoplay loop muted playsinline controls></video>
 
-*O periférico funcionando na bancada: o arco-íris e, no final, as piscadas vermelhas do desligar.* ([abrir o vídeo](../assets/fig12-funcionando-bancada.mp4))
+*O periférico funcionando na bancada: o arco-íris e, no final, as piscadas vermelhas do desligar. Vídeo: Noah Teodoro Ceiglinski Domingues.* ([abrir o vídeo](../assets/fig12-funcionando-bancada.mp4))
 
 ---
 
